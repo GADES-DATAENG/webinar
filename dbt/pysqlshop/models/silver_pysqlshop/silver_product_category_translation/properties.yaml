@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: silver_product_category_translation
+    description: "Process layer model for the product category translations from the PySQLshop data source."
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [dsc_product_category_name]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, dsc_product_category_name]
+      schema: silver_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, product_category_translation]
+    columns:
+      - name: dsc_product_category_name
+        description: "The name of the product category in the local language."
+        tests:
+          - unique
+          - not_null
+      - name: dsc_product_category_name_english
+        description: "The name of the product category in English."
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null
+
+sources:
+  - name: raw
+    dataset: bronze_pysqlshop
+    tables:
+      - name: bronze_product_category_translation
+        description: "Raw product category translation data from the PySQLshop data source."
+        columns:
+          - name: product_category_name
+            description: "The name of the product category in the raw data."
+          - name: product_category_name_english
+            description: "The name of the product category in English in the raw data."
+          - name: audit_load_at
+            description: "The timestamp when the record was loaded into the raw layer."

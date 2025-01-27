@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: gold_fact_orders
+    description: "Gold layer model for the fact_orders table."
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [dd_code_order]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, dd_code_order]
+      schema: gold_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, orders]
+    columns:
+      - name: dd_code_order
+        description: "The unique identifier for each order."
+        tests:
+          - unique
+          - not_null
+      - name: sk_customer
+        description: "Surrogate key for the customer, generated using SHA256 on the customer code."
+        tests:
+          - not_null
+      - name: sk_order_status
+        description: "Surrogate key for the order status, generated using SHA256 on the order status description."
+        tests:
+          - not_null
+      - name: sk_payment_type
+        description: "Surrogate key for the payment type, generated using SHA256 on the payment type description."
+        tests:
+          - not_null
+      - name: mtr_order_price
+        description: "The total price of the order, including items and freight."
+      - name: mtr_order_freight_value
+        description: "The freight value of the order."
+      - name: mtr_payment_value
+        description: "The payment value for the order."
+      - name: mtr_review_score
+        description: "The review score for the order."
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null

@@ -1,0 +1,49 @@
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environment directories
+venv/
+.env/
+
+# Ignore Airflow log files
+airflow/logs/
+*/logs/
+/logs/scheduler/latest
+
+# Ignore dbt target and logs directories
+dbt/target/
+dbt/logs/
+**/target/
+
+# Ignore Airflow database and migrations
+airflow/db/
+airflow/migrations/
+
+# Ignore Docker files and directories
+*.tar
+*.tgz
+
+# Ignore .env files with sensitive information
+.env
+*.env
+
+# Ignore the BigQuery service account key file (Sensitive credentials)
+*.json
+
+# Ignore IDE/editor specific files (e.g., VSCode, PyCharm)
+.vscode/
+.idea/
+
+# Ignore any other generated or temporary files
+*.log
+*.bak
+*.swp
+
+.DS_Store
+
+.venv/*
+
+.user.yml

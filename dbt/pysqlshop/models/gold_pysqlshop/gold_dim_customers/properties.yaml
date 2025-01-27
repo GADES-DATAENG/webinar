@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: gold_dim_customers
+    description: "Gold layer model for the dim_customers table."
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [code_customer]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, code_customer]
+      schema: gold_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, customers]
+    columns:
+      - name: sk_customer
+        description: "Surrogate key for the customer, generated using SHA256 on the customer code."
+        tests:
+          - unique
+          - not_null
+      - name: code_customer
+        description: "The unique identifier for each customer."
+        tests:
+          - unique
+          - not_null
+      - name: code_customer_unique
+        description: "A unique identifier for each customer provided by the source system."
+        tests:
+          - not_null
+      - name: dsc_customer_zip_code_prefix
+        description: "The prefix of the customer's ZIP code."
+      - name: dsc_customer_city
+        description: "The city of the customer."
+      - name: dsc_customer_state
+        description: "The state of the customer."
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null

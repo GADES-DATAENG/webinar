@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: gold_dim_sellers
+    description: "Gold layer model for the dim_sellers table."
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [code_seller]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, code_seller]
+      schema: gold_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, sellers]
+    columns:
+      - name: sk_seller
+        description: "Surrogate key for the seller, generated using SHA256 on the seller code."
+        tests:
+          - unique
+          - not_null
+      - name: code_seller
+        description: "The unique identifier for each seller."
+        tests:
+          - unique
+          - not_null
+      - name: dsc_seller_zip_code_prefix
+        description: "The prefix of the seller's ZIP code."
+      - name: dsc_seller_city
+        description: "The city of the seller."
+      - name: dsc_seller_state
+        description: "The state of the seller."
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null

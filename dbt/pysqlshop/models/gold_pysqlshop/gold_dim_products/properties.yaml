@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: gold_dim_products
+    description: "Gold layer model for the dim_products table."
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [code_product]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, code_product]
+      schema: gold_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, products]
+    columns:
+      - name: sk_product
+        description: "Surrogate key for the product, generated using SHA256 on the product code."
+        tests:
+          - unique
+          - not_null
+      - name: code_product
+        description: "The unique identifier for each product."
+        tests:
+          - unique
+          - not_null
+      - name: dsc_product_category_name
+        description: "The name of the product's category in the source system."
+      - name: dsc_product_category_name_english
+        description: "The English name of the product's category (translation)."
+      - name: mtr_product_name_lenght
+        description: "The length of the product's name in characters."
+      - name: mtr_product_description_lenght
+        description: "The length of the product's description in characters."
+      - name: mtr_product_photos_qty
+        description: "The quantity of photos associated with the product."
+      - name: mtr_product_weight_g
+        description: "The weight of the product in grams."
+      - name: mtr_product_length_cm
+        description: "The length of the product in centimeters."
+      - name: mtr_product_height_cm
+        description: "The height of the product in centimeters."
+      - name: mtr_product_width_cm
+        description: "The width of the product in centimeters."
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null

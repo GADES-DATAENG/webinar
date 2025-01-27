@@ -1,0 +1,67 @@
+version: 2
+
+models:
+  - name: silver_order_payments
+    description: "Process layer model for the order payments entity from the PySQLshop data source."
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [code_order]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, code_order]
+      schema: silver_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, order_payments]
+    columns:
+      - name: code_order
+        description: "The unique identifier for each order."
+        tests:
+          - unique
+          - not_null
+      - name: mtr_payment_sequential
+        description: "The sequential number for each payment associated with an order."
+        tests:
+          - not_null
+      - name: dsc_payment_type
+        description: "The type of payment used for the order (e.g., credit card, boleto)."
+        tests:
+          - not_null
+      - name: mtr_payment_installments
+        description: "The number of installments for the payment."
+        tests:
+          - not_null
+      - name: mtr_payment_value
+        description: "The total value of the payment."
+        tests:
+          - not_null
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null
+
+sources:
+  - name: raw
+    dataset: bronze_pysqlshop
+    tables:
+      - name: bronze_order_payments
+        description: "Raw order payments data from the PySQLshop data source."
+        columns:
+          - name: order_id
+            description: "The unique identifier for each order in the raw data."
+          - name: payment_sequential
+            description: "The sequential number for each payment in the raw data."
+          - name: payment_type
+            description: "The type of payment used in the raw data (e.g., credit card, boleto)."
+          - name: payment_installments
+            description: "The number of installments for the payment in the raw data."
+          - name: payment_value
+            description: "The value of the payment in the raw data."
+          - name: audit_load_at
+            description: "The timestamp when the record was loaded into the raw layer."

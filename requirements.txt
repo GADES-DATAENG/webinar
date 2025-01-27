@@ -1,0 +1,5 @@
+apache-airflow==2.9.2
+dbt-core
+dbt-bigquery  # If using BigQuery with dbt
+pandas
+psycopg2-binary

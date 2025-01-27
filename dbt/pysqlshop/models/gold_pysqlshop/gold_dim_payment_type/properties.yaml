@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: gold_dim_payment_type
+    description: "Gold layer model for the payment type dimension."
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [dsc_payment_type]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, sk_payment_type]
+      schema: gold_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, payment_type]
+    columns:
+      - name: sk_payment_type
+        description: "Surrogate key for the payment type, generated using SHA256 on the payment type description."
+        tests:
+          - unique
+          - not_null
+      - name: dsc_payment_type
+        description: "The description of the payment type."
+        tests:
+          - not_null
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null

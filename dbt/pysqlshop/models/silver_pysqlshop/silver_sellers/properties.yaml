@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: silver_sellers
+    description: "Process layer model for the seller data from the PySQLshop data source."
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [code_seller]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, code_seller]
+      schema: silver_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, sellers]
+    columns:
+      - name: code_seller
+        description: "The unique identifier for each seller."
+        tests:
+          - unique
+          - not_null
+      - name: dsc_seller_zip_code_prefix
+        description: "The zip code prefix of the seller's location."
+      - name: dsc_seller_city
+        description: "The name of the seller's city."
+      - name: dsc_seller_state
+        description: "The name of the seller's state."
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null
+
+sources:
+  - name: raw
+    dataset: bronze_pysqlshop
+    tables:
+      - name: bronze_sellers
+        description: "Raw sellers data from the PySQLshop data source."
+        columns:
+          - name: seller_id
+            description: "The unique identifier for each seller in the raw data."
+          - name: seller_zip_code_prefix
+            description: "The zip code prefix of the seller in the raw data."
+          - name: seller_city
+            description: "The city of the seller in the raw data."
+          - name: seller_state
+            description: "The state of the seller in the raw data."
+          - name: audit_load_at
+            description: "The timestamp when the record was loaded into the raw layer."

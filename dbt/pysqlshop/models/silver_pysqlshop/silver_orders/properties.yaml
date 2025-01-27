@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: silver_orders
+    description: "Process layer model for the orders entity from the PySQLshop data source."
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [code_order]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, code_order]
+      schema: silver_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, orders]
+    columns:
+      - name: code_order
+        description: "The unique identifier for each order."
+        tests:
+          - unique
+          - not_null
+      - name: code_customer
+        description: "The unique identifier for each customer."
+        tests:
+          - not_null
+      - name: dsc_order_status
+        description: "The status of the order (e.g., completed, pending, etc.)."
+      - name: date_order_purchase
+        description: "The timestamp when the order was purchased."
+        tests:
+          - not_null
+      - name: date_order_approved
+        description: "The timestamp when the order was approved."
+      - name: date_order_delivered_carrier
+        description: "The timestamp when the order was delivered to the carrier."
+      - name: date_order_delivered_customer
+        description: "The timestamp when the order was delivered to the customer."
+      - name: date_order_estimated_delivery
+        description: "The estimated delivery date for the order."
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null
+
+sources:
+  - name: raw
+    dataset: bronze_pysqlshop
+    tables:
+      - name: bronze_orders
+        description: "Raw order data from the PySQLshop data source."
+        columns:
+          - name: order_id
+            description: "The unique identifier for each order in the raw data."
+          - name: customer_id
+            description: "The unique identifier for each customer in the raw data."
+          - name: order_status
+            description: "The status of the order in the raw data."
+          - name: order_purchase_timestamp
+            description: "The purchase timestamp for the order in the raw data."
+          - name: order_approved_at
+            description: "The timestamp when the order was approved in the raw data."
+          - name: order_delivered_carrier_date
+            description: "The date the order was delivered to the carrier in the raw data."
+          - name: order_delivered_customer_date
+            description: "The date the order was delivered to the customer in the raw data."
+          - name: order_estimated_delivery_date
+            description: "The estimated delivery date for the order in the raw data."
+          - name: audit_load_at
+            description: "The timestamp when the record was loaded into the raw layer."

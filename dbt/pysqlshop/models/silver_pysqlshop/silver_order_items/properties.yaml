@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: silver_order_items
+    description: "Process layer model for the order items entity from the PySQLshop data source"
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [code_order, code_order_item]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, code_order]
+      schema: silver_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, order_items]
+    columns:
+      - name: code_order
+        description: "The unique identifier for the order."
+        tests:
+          - not_null
+      - name: code_order_item
+        description: "The unique identifier for the order item within the order."
+        tests:
+          - not_null
+      - name: code_product
+        description: "The unique identifier for the product."
+        tests:
+          - not_null
+      - name: code_seller
+        description: "The unique identifier for the seller."
+        tests:
+          - not_null
+      - name: date_shipping_limit
+        description: "The shipping limit date for the order item, cast to TIMESTAMP."
+      - name: mtr_order_item_price
+        description: "The price of the order item."
+        tests:
+          - not_null
+      - name: mtr_order_item_freight_value
+        description: "The freight cost for the order item."
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null
+
+sources:
+  - name: raw
+    dataset: bronze_pysqlshop
+    tables:
+      - name: bronze_order_items
+        description: "Raw order items data from the PySQLshop data source."

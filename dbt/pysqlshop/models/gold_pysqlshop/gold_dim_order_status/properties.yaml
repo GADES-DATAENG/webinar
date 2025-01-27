@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: gold_dim_order_status
+    description: "Gold layer model for the order status dimension."
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [dsc_order_status]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, sk_order_status]
+      schema: gold_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, order_status]
+    columns:
+      - name: sk_order_status
+        description: "Surrogate key for the order status, generated using SHA256 on the order status description."
+        tests:
+          - unique
+          - not_null
+      - name: dsc_order_status
+        description: "The description of the order status."
+        tests:
+          - not_null
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null

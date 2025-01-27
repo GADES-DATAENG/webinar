@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: silver_order_reviews
+    description: "Process layer model for the order reviews entity from the PySQLshop data source."
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [code_review]
+      merge_exclude_columns: [audit_created_at]
+      cluster_by: [audit_updated_at, code_review]
+      schema: silver_pysqlshop
+      partition_by:
+        field: audit_updated_at
+        data_type: timestamp
+        granularity: hour
+      tags: [process, order_reviews]
+    columns:
+      - name: code_review
+        description: "The unique identifier for each order review."
+        tests:
+          - unique
+          - not_null
+      - name: code_order
+        description: "The unique identifier for each order."
+        tests:
+          - not_null
+      - name: mtr_review_score
+        description: "The score given by the customer in the review (e.g., rating scale)."
+        tests:
+          - not_null
+      - name: dsc_review_comment_title
+        description: "The title of the review comment provided by the customer."
+      - name: dsc_review_comment_message
+        description: "The message content of the review comment provided by the customer."
+      - name: date_review_creation
+        description: "The timestamp when the review was created."
+        tests:
+          - not_null
+      - name: date_review_answer
+        description: "The timestamp when the review was answered."
+        tests:
+          - not_null
+      - name: audit_created_at
+        description: "The timestamp when the record was created in the process layer."
+        tests:
+          - not_null
+      - name: audit_updated_at
+        description: "The timestamp when the record was last updated in the process layer."
+        tests:
+          - not_null
+
+sources:
+  - name: raw
+    dataset: bronze_pysqlshop
+    tables:
+      - name: bronze_order_reviews
+        description: "Raw order reviews data from the PySQLshop data source."
+        columns:
+          - name: review_id
+            description: "The unique identifier for each review in the raw data."
+          - name: order_id
+            description: "The unique identifier for each order in the raw data."
+          - name: review_score
+            description: "The score given by the customer in the raw review data."
+          - name: review_comment_title
+            description: "The title of the review comment in the raw data."
+          - name: review_comment_message
+            description: "The message content of the review comment in the raw data."
+          - name: review_creation_date
+            description: "The creation timestamp for the review in the raw data."
+          - name: review_answer_timestamp
+            description: "The timestamp when the review was answered in the raw data."
+          - name: audit_load_at
+            description: "The timestamp when the record was loaded into the raw layer."
